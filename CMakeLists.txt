@@ -19,7 +19,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SFML)
 
 # Crea il tuo eseguibile
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME}
+        main.cpp
+        Personaggio.cpp
+        Personaggio.h)
 
 # Collega SFML al tuo progetto
 target_link_libraries(${PROJECT_NAME}
