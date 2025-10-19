@@ -1,5 +1,6 @@
 #include "Mappa.h"
 #include <cmath>
+#include <random>
 
 Mappa::Mappa(const sf::Vector2f& dim) : dimensioni(dim), coloreOstacolo(150, 75, 0) {
     float spessore = 30.f;

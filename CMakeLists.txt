@@ -26,7 +26,11 @@ add_executable(${PROJECT_NAME}
         Mappa.cpp
         Mappa.h
         ostacoli.cpp
-        ostacoli.h)
+        ostacoli.h
+        Nemico.cpp
+        Nemico.h
+        NavigationGrind.cpp
+        NavigationGrind.h)
 
 # Collega SFML al tuo progetto
 target_link_libraries(${PROJECT_NAME}

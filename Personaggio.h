@@ -1,20 +1,23 @@
-#pragma once
+#ifndef PERSONAGGIO_H
+#define PERSONAGGIO_H
+
 #include <SFML/Graphics.hpp>
 
 class Personaggio {
 private:
+    sf::RectangleShape forma;
     sf::Vector2f posizione;
     sf::Vector2f dimensione;
-    sf::RectangleShape forma;  // invece di sprite e texture
     float velocita;
 
 public:
-    Personaggio(sf::Vector2f pos, sf::Vector2f dim, float vel = 200.f);
-    sf::FloatRect getGlobalBounds() const;
-    void disegna(sf::RenderWindow& finestra);
+    Personaggio(const sf::Vector2f& pos, const sf::Vector2f& dim, float vel = 300.f);
     void muovi(const sf::Vector2f& direzione, float deltaTime);
-
+    void disegna(sf::RenderWindow& finestra) const;
+    void setPosizione(const sf::Vector2f& nuovaPos);
     sf::Vector2f getPosizione() const;
     sf::Vector2f getDimensione() const;
-    void setPosizione(const sf::Vector2f& nuovaPos);
+    sf::FloatRect getGlobalBounds() const;
 };
+
+#endif

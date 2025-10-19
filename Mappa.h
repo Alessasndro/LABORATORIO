@@ -3,7 +3,6 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include <random>
 
 class Mappa {
 private:
@@ -12,14 +11,14 @@ private:
     std::vector<sf::RectangleShape> ostacoli;
     sf::Color coloreOstacolo;
 
-    void generaOstacoli(int numeroOstacoli = 10);
+    void generaOstacoli(int numeroOstacoli);
 
 public:
     Mappa(const sf::Vector2f& dim);
-    sf::FloatRect getBounds() const;
     void disegna(sf::RenderWindow& window) const;
     const std::vector<sf::RectangleShape>& getMuri() const;
     const std::vector<sf::RectangleShape>& getOstacoli() const;
+    sf::FloatRect getBounds() const;
 };
 
 #endif
