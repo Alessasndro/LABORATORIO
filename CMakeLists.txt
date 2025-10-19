@@ -22,7 +22,9 @@ FetchContent_MakeAvailable(SFML)
 add_executable(${PROJECT_NAME}
         main.cpp
         Personaggio.cpp
-        Personaggio.h)
+        Personaggio.h
+        Mappa.cpp
+        Mappa.h)
 
 # Collega SFML al tuo progetto
 target_link_libraries(${PROJECT_NAME}
