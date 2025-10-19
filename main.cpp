@@ -10,7 +10,6 @@ T clamp(T v, T lo, T hi) {
     return (v < lo) ? lo : (v > hi) ? hi : v;
 }
 
-// Funzione per verificare collisioni tra rettangoli
 bool checkCollision(const FloatRect& rect1, const FloatRect& rect2) {
     return rect1.intersects(rect2);
 }
@@ -19,8 +18,15 @@ int main() {
     RenderWindow window(VideoMode(1400, 900), "SFML con CMake");
     Clock clock;
 
-    Mappa mappa(Vector2f(1400.f, 900.f)); // stessa dimensione della finestra
+    Mappa mappa(Vector2f(1400.f, 900.f));
     Personaggio player(Vector2f(50.f, 50.f), Vector2f(30.f, 30.f));
+
+    FloatRect mappaBounds(0.f, 0.f, 1400.f, 900.f);
+
+    float apertura = 200.f;
+    float centro = mappaBounds.height / 2.f;
+    float yTop = centro - apertura / 2.f;
+    float yBottom = centro + apertura / 2.f;
 
     while (window.isOpen()) {
         Event event{};
@@ -31,30 +37,33 @@ int main() {
 
         float deltaTime = clock.restart().asSeconds();
 
-        // Movimento con WASD
         Vector2f direzione(0.f, 0.f);
         if (Keyboard::isKeyPressed(Keyboard::W)) direzione.y -= 1.f;
         if (Keyboard::isKeyPressed(Keyboard::S)) direzione.y += 1.f;
         if (Keyboard::isKeyPressed(Keyboard::A)) direzione.x -= 1.f;
         if (Keyboard::isKeyPressed(Keyboard::D)) direzione.x += 1.f;
 
-        // Normalizza la direzione
         if (direzione.x != 0.f || direzione.y != 0.f) {
             float len = std::sqrt(direzione.x*direzione.x + direzione.y*direzione.y);
             direzione /= len;
         }
 
-        // Salva la posizione prima del movimento
         Vector2f oldPos = player.getPosizione();
 
-        // Prova a muovere il player
         player.muovi(direzione, deltaTime);
 
-        // Ottieni la nuova posizione e bounds
         Vector2f newPos = player.getPosizione();
-        FloatRect playerBounds = player.getGlobalBounds();
+        Vector2f size = player.getDimensione();
+        FloatRect playerBounds(newPos.x, newPos.y, size.x, size.y);
 
-        // Controlla collisioni con i muri
+        if (newPos.x < 0) {
+            float playerCenterY = newPos.y + size.y / 2.f;
+            if (playerCenterY > yTop && playerCenterY < yBottom) {
+                window.close();
+                return 0;
+            }
+        }
+
         bool collisione = false;
         for (const auto& muro : mappa.getMuri()) {
             if (checkCollision(playerBounds, muro.getGlobalBounds())) {
@@ -63,7 +72,6 @@ int main() {
             }
         }
 
-        // 🔹 Controlla collisioni con gli ostacoli
         if (!collisione) {
             for (const auto& ostacolo : mappa.getOstacoli()) {
                 if (checkCollision(playerBounds, ostacolo.getGlobalBounds())) {
@@ -73,18 +81,14 @@ int main() {
             }
         }
 
-        // Se c'è collisione, ripristina la posizione precedente
         if (collisione) {
             player.setPosizione(oldPos);
         } else {
-            // Limita il personaggio all'interno della mappa (solo se non collide)
-            FloatRect bounds = mappa.getBounds();
             Vector2f pos = player.getPosizione();
-            Vector2f size = player.getDimensione();
             Vector2f half = size / 2.f;
 
-            pos.x = clamp(pos.x, bounds.left + half.x, bounds.left + bounds.width - half.x);
-            pos.y = clamp(pos.y, bounds.top + half.y, bounds.top + bounds.height - half.y);
+            pos.x = clamp(pos.x, -size.x, mappaBounds.left + mappaBounds.width - half.x);
+            pos.y = clamp(pos.y, mappaBounds.top + half.y, mappaBounds.top + mappaBounds.height - half.y);
 
             player.setPosizione(pos);
         }
