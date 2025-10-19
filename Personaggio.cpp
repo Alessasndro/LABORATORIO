@@ -5,7 +5,10 @@ Personaggio::Personaggio(sf::Vector2f pos, sf::Vector2f dim, float vel)
 {
     forma.setSize(dimensione);
     forma.setPosition(posizione);
-    forma.setFillColor(sf::Color::Green); // colore visibile
+    forma.setFillColor(sf::Color::Green);
+}
+sf::FloatRect Personaggio::getGlobalBounds() const {
+    return forma.getGlobalBounds();
 }
 
 void Personaggio::disegna(sf::RenderWindow& finestra) {

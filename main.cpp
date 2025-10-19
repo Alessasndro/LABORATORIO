@@ -10,6 +10,11 @@ T clamp(T v, T lo, T hi) {
     return (v < lo) ? lo : (v > hi) ? hi : v;
 }
 
+// Funzione per verificare collisioni tra rettangoli
+bool checkCollision(const FloatRect& rect1, const FloatRect& rect2) {
+    return rect1.intersects(rect2);
+}
+
 int main() {
     RenderWindow window(VideoMode(1400, 900), "SFML con CMake");
     Clock clock;
@@ -39,18 +44,50 @@ int main() {
             direzione /= len;
         }
 
+        // Salva la posizione prima del movimento
+        Vector2f oldPos = player.getPosizione();
+
+        // Prova a muovere il player
         player.muovi(direzione, deltaTime);
 
-        // Limita il personaggio all'interno della mappa
-        FloatRect bounds = mappa.getBounds();
-        Vector2f pos = player.getPosizione();
-        Vector2f size = player.getDimensione();
-        Vector2f half = size / 2.f;
+        // Ottieni la nuova posizione e bounds
+        Vector2f newPos = player.getPosizione();
+        FloatRect playerBounds = player.getGlobalBounds();
 
-        pos.x = clamp(pos.x, bounds.left + half.x, bounds.left + bounds.width - half.x);
-        pos.y = clamp(pos.y, bounds.top + half.y, bounds.top + bounds.height - half.y);
+        // Controlla collisioni con i muri
+        bool collisione = false;
+        for (const auto& muro : mappa.getMuri()) {
+            if (checkCollision(playerBounds, muro.getGlobalBounds())) {
+                collisione = true;
+                break;
+            }
+        }
 
-        player.setPosizione(pos);
+        // 🔹 Controlla collisioni con gli ostacoli
+        if (!collisione) {
+            for (const auto& ostacolo : mappa.getOstacoli()) {
+                if (checkCollision(playerBounds, ostacolo.getGlobalBounds())) {
+                    collisione = true;
+                    break;
+                }
+            }
+        }
+
+        // Se c'è collisione, ripristina la posizione precedente
+        if (collisione) {
+            player.setPosizione(oldPos);
+        } else {
+            // Limita il personaggio all'interno della mappa (solo se non collide)
+            FloatRect bounds = mappa.getBounds();
+            Vector2f pos = player.getPosizione();
+            Vector2f size = player.getDimensione();
+            Vector2f half = size / 2.f;
+
+            pos.x = clamp(pos.x, bounds.left + half.x, bounds.left + bounds.width - half.x);
+            pos.y = clamp(pos.y, bounds.top + half.y, bounds.top + bounds.height - half.y);
+
+            player.setPosizione(pos);
+        }
 
         window.clear();
         mappa.disegna(window);

@@ -24,7 +24,9 @@ add_executable(${PROJECT_NAME}
         Personaggio.cpp
         Personaggio.h
         Mappa.cpp
-        Mappa.h)
+        Mappa.h
+        ostacoli.cpp
+        ostacoli.h)
 
 # Collega SFML al tuo progetto
 target_link_libraries(${PROJECT_NAME}

@@ -10,7 +10,7 @@ private:
 
 public:
     Personaggio(sf::Vector2f pos, sf::Vector2f dim, float vel = 200.f);
-
+    sf::FloatRect getGlobalBounds() const;
     void disegna(sf::RenderWindow& finestra);
     void muovi(const sf::Vector2f& direzione, float deltaTime);
 
