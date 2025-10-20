@@ -5,8 +5,19 @@ Personaggio::Personaggio(const sf::Vector2f& pos, const sf::Vector2f& dim, float
 
     forma.setSize(dimensione);
     forma.setPosition(posizione);
-    forma.setFillColor(sf::Color::Green);
+    forma.setFillColor(sf::Color::Green); // Colore di fallback
 }
+
+bool Personaggio::caricaTexture(const std::string& percorsoFile) {
+    if (texture.loadFromFile(percorsoFile)) {
+        forma.setTexture(&texture);
+        forma.setFillColor(sf::Color::White); // Importante per visualizzare la texture
+        return true;
+    }
+    return false;
+}
+
+
 
 sf::FloatRect Personaggio::getGlobalBounds() const {
     return forma.getGlobalBounds();

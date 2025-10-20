@@ -1,5 +1,6 @@
 #include "Nemico.h"
 #include <cmath>
+#include <iostream>
 
 Nemico::Nemico(const sf::Vector2f& posizione, const sf::Vector2f& dimensione, float velocita)
     : velocitaMovimento(velocita), waypointCorrente(0), timerRicerca(0) {
@@ -18,7 +19,22 @@ Nemico::Nemico(const sf::Vector2f& posizione, const sf::Vector2f& dimensione, fl
 
     forma.setOutlineThickness(2.f);
 }
+bool Nemico::caricaTexture(const std::string& percorsoFile) {
+    if (texture.loadFromFile(percorsoFile)) {
+        forma.setTexture(&texture);
+        textureCaricata = true;
 
+        // Rimuovi i colori di fallback se la texture è caricata
+        forma.setFillColor(sf::Color::White);
+        forma.setOutlineColor(sf::Color::Transparent);
+
+        return true;
+    } else {
+        std::cout << "Texture nemico non trovata: " << percorsoFile << std::endl;
+        textureCaricata = false;
+        return false;
+    }
+}
 bool Nemico::checkCollisioneConOstacoli(const std::vector<sf::RectangleShape>& ostacoli, const sf::Vector2f& nuovaPosizione) const {
     sf::FloatRect bounds(nuovaPosizione.x, nuovaPosizione.y, forma.getSize().x, forma.getSize().y);
 
@@ -47,7 +63,7 @@ void Nemico::aggiorna(const sf::Vector2f& posizioneGiocatore, NavigationGrid& na
     timerRicerca += deltaTime;
 
     // Ricerca percorso meno frequente ma più stabile
-    if (timerRicerca >= 1.0f || percorso.empty()) {
+    if (timerRicerca >= 0.5f || percorso.empty()) {
         percorso = navigazione.calcolaPercorso(forma.getPosition(), posizioneGiocatore);
         waypointCorrente = 0;
         timerRicerca = 0;

@@ -6,6 +6,7 @@
 #include <vector>
 #include <cmath>
 #include <random>
+#include  <iostream>
 
 using namespace sf;
 
@@ -93,7 +94,7 @@ std::vector<sf::Vector2f> generaPosizioniNemici(int numeroNemici, const Mappa& m
         }
 
         // Controlla collisioni con ostacoli e muri
-        if (!isPosizioneValida(pos, Vector2f(45.f, 45.f), mappa)) {
+        if (!isPosizioneValida(pos, Vector2f(75.f, 75.f), mappa)) {
             continue;
         }
 
@@ -108,34 +109,49 @@ int main() {
     Clock clock;
 
     Mappa mappa(Vector2f(1400.f, 900.f));
+    if (!mappa.caricaTextureSfondo("C:/Users/valen/Desktop/LABORATORIO/cmake-build-debug/mappa.png")) {
+        std::cout << "Texture sfondo non trovata\n";
+    }
+    if (!mappa.caricaTextureMuri("C:/Users/valen/Desktop/LABORATORIO/cmake-build-debug/wall.png")) {
+        std::cout << "Texture muri non trovata\n";
+    }
+
+    // ⭐ TEXTURE PER GLI OSTACOLI ⭐
+    if (!mappa.caricaTextureOstacoli("C:/Users/valen/Desktop/LABORATORIO/cmake-build-debug/ostacolo.png")) {
+        std::cout << "Texture ostacoli non trovata\n";
+    }
 
     // Trova una posizione di spawn sicura per il player
-    Vector2f playerSize(30.f, 30.f);
+    Vector2f playerSize(45.f, 50.f);
     Vector2f playerSpawnPos = trovaSpawnSicuroPlayer(mappa, playerSize);
 
-    Personaggio player(playerSpawnPos, playerSize, 350.f);
+    Personaggio player(playerSpawnPos,playerSize, 350.f);
+
+    // CARICA LA TEXTURE DEL PLAYER
+    if (!player.caricaTexture("C:/Users/valen/Desktop/LABORATORIO/cmake-build-debug/player.png")) {
+        std::cout << "Texture player non trovata. Player verde.\n";
+    }
 
     NavigationGrid navigazione(Vector2f(1400.f, 900.f), 40.f);
     navigazione.aggiornaOstacoli(mappa.getMuri(), mappa.getOstacoli());
 
     std::vector<Nemico> nemici;
 
-    // Genera posizioni per i nemici usando la posizione effettiva del player
+    // Genera posizioni per i nemici usando la posizione effettiva del playerw
     auto posizioni = generaPosizioniNemici(8, mappa, player.getPosizione());
 
     if (posizioni.size() >= 8) {
         // 6 NEMICI PICCOLI E ULTRARAPIDI
         for (int i = 0; i < 6; i++) {
-            nemici.push_back(Nemico(posizioni[i], Vector2f(25.f, 25.f), 480.f)); // Molto veloci
+            nemici.push_back(Nemico(posizioni[i], Vector2f(40.f, 40.f), 480.f));
         }
 
         // 2 NEMICI GRANDI E RAPIDI
         for (int i = 6; i < 8; i++) {
-            nemici.push_back(Nemico(posizioni[i], Vector2f(50.f, 50.f), 380.f)); // Veloci
+            nemici.push_back(Nemico(posizioni[i], Vector2f(70.f, 70.f), 380.f));
         }
     } else {
-        // Fallback se non riesce a generare posizioni - TUTTI ULTRA-RAPIDI
-        // Usa la funzione isPosizioneValida per trovare posizioni sicure
+        // Fallback se non riesce a generare posizioni
         std::vector<Vector2f> fallbackPositions = {
             Vector2f(200.f, 200.f), Vector2f(400.f, 600.f), Vector2f(700.f, 400.f),
             Vector2f(300.f, 500.f), Vector2f(600.f, 300.f), Vector2f(800.f, 700.f),
@@ -147,7 +163,6 @@ int main() {
             Vector2f nemicoSize = (&pos == &fallbackPositions[6] || &pos == &fallbackPositions[7]) ?
                                  Vector2f(50.f, 50.f) : Vector2f(25.f, 25.f);
 
-            // Se la posizione non è valida, cerca una vicina che lo sia
             if (!isPosizioneValida(pos, nemicoSize, mappa)) {
                 bool trovata = false;
                 for (float offset = 50.f; offset <= 200.f && !trovata; offset += 50.f) {
@@ -159,7 +174,7 @@ int main() {
                                 safePos = newPos;
                                 trovata = true;
                                 break;
-                                }
+                            }
                         }
                     }
                 }
@@ -167,6 +182,24 @@ int main() {
 
             float speed = (&pos == &fallbackPositions[6] || &pos == &fallbackPositions[7]) ? 380.f : 480.f;
             nemici.push_back(Nemico(safePos, nemicoSize, speed));
+        }
+    }
+
+    // CARICA TEXTURE PER I NEMICI - AGGIUNTO
+    std::string textureNemicoPiccolo = "C:/Users/valen/Desktop/LABORATORIO/cmake-build-debug/nemico_piccolo.png";
+    std::string textureNemicoGrande = "C:/Users/valen/Desktop/LABORATORIO/cmake-build-debug/nemico_grande.png";
+
+    // Applica texture ai nemici piccoli
+    for (int i = 0; i < 6 && i < nemici.size(); i++) {
+        if (!nemici[i].caricaTexture(textureNemicoPiccolo)) {
+            std::cout << "Texture nemico piccolo non caricata per nemico " << i << "\n";
+        }
+    }
+
+    // Applica texture ai nemici grandi
+    for (int i = 6; i < 8 && i < nemici.size(); i++) {
+        if (!nemici[i].caricaTexture(textureNemicoGrande)) {
+            std::cout << "Texture nemico grande non caricata per nemico " << i << "\n";
         }
     }
 
@@ -179,12 +212,11 @@ int main() {
 
     // Timer per il game over
     float tempoTrascorso = 0.f;
-    const float tempoMassimo = 60.f; // 60 secondi per vincere
+    const float tempoMassimo = 40.f;
+
     Font font;
-    if (!font.loadFromFile("arial.ttf")) {
-        // Fallback font
-        font.loadFromFile("C:/Windows/Fonts/arial.ttf");
-    }
+    font.loadFromFile("C:/Windows/Fonts/arial.ttf");
+
     Text timerText;
     timerText.setFont(font);
     timerText.setCharacterSize(24);

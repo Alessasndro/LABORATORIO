@@ -30,7 +30,8 @@ add_executable(${PROJECT_NAME}
         Nemico.cpp
         Nemico.h
         NavigationGrind.cpp
-        NavigationGrind.h)
+        NavigationGrind.h
+)
 
 # Collega SFML al tuo progetto
 target_link_libraries(${PROJECT_NAME}

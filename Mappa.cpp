@@ -1,103 +1,176 @@
 #include "Mappa.h"
-#include <cmath>
-#include <random>
+#include <iostream>
 
-Mappa::Mappa(const sf::Vector2f& dim) : dimensioni(dim), coloreOstacolo(150, 75, 0) {
-    float spessore = 30.f;
-    sf::Color coloreMuro(80, 80, 80);
+Mappa::Mappa(const sf::Vector2f& dimensioneFinestra)
+    : textureSfondoCaricata(false), textureMuriCaricata(false), textureOstacoliCaricata(false) {
 
-    sf::RectangleShape muroTop({dimensioni.x, spessore});
-    muroTop.setPosition(0.f, 0.f);
-    muroTop.setFillColor(coloreMuro);
-    muri.push_back(muroTop);
+    // Inizializza lo sfondo
+    sfondo.setSize(dimensioneFinestra);
+    sfondo.setPosition(0, 0);
+    sfondo.setFillColor(sf::Color(100, 100, 100)); // Colore di fallback
 
-    sf::RectangleShape muroBottom({dimensioni.x, spessore});
-    muroBottom.setPosition(0.f, dimensioni.y - spessore);
-    muroBottom.setFillColor(coloreMuro);
-    muri.push_back(muroBottom);
-
-    sf::RectangleShape muroRight({spessore, dimensioni.y});
-    muroRight.setPosition(dimensioni.x - spessore, 0.f);
-    muroRight.setFillColor(coloreMuro);
-    muri.push_back(muroRight);
-
-    float apertura = 200.f;
-    float centro = dimensioni.y / 2.f;
-    float yTop = centro - apertura / 2.f;
-    float yBottom = centro + apertura / 2.f;
-
-    sf::RectangleShape muroLeftTop({spessore, yTop});
-    muroLeftTop.setPosition(0.f, 0.f);
-    muroLeftTop.setFillColor(coloreMuro);
-    muri.push_back(muroLeftTop);
-
-    sf::RectangleShape muroLeftBottom({spessore, dimensioni.y - yBottom});
-    muroLeftBottom.setPosition(0.f, yBottom);
-    muroLeftBottom.setFillColor(coloreMuro);
-    muri.push_back(muroLeftBottom);
-
-    generaOstacoli(12);
+    creaMuri(dimensioneFinestra);
+    creaOstacoli();
 }
 
-void Mappa::generaOstacoli(int numeroOstacoli) {
+void Mappa::creaMuri(const sf::Vector2f& dimensioneFinestra) {
+    muri.clear();
+
+    // Mura perimetrali
+    float spessoreMuro = 30.f;
+
+    // Muro superiore - BIANCO
+    sf::RectangleShape muroSuperiore(sf::Vector2f(dimensioneFinestra.x, spessoreMuro));
+    muroSuperiore.setPosition(0, 0);
+    muroSuperiore.setFillColor(sf::Color::White);
+    muri.push_back(muroSuperiore);
+
+    // Muro inferiore - BIANCO
+    sf::RectangleShape muroInferiore(sf::Vector2f(dimensioneFinestra.x, spessoreMuro));
+    muroInferiore.setPosition(0, dimensioneFinestra.y - spessoreMuro);
+    muroInferiore.setFillColor(sf::Color::White);
+    muri.push_back(muroInferiore);
+
+    // Muro sinistro (con apertura) - BIANCO
+    float altezzaApertura = 200.f;
+    float centroY = dimensioneFinestra.y / 2.f;
+    float ySuperiore = centroY - altezzaApertura / 2.f;
+    float yInferiore = centroY + altezzaApertura / 2.f;
+
+    // Parte superiore del muro sinistro - BIANCO
+    if (ySuperiore > 0) {
+        sf::RectangleShape muroSinistroSuperiore(sf::Vector2f(spessoreMuro, ySuperiore));
+        muroSinistroSuperiore.setPosition(0, 0);
+        muroSinistroSuperiore.setFillColor(sf::Color::White);
+        muri.push_back(muroSinistroSuperiore);
+    }
+
+    // Parte inferiore del muro sinistro - BIANCO
+    if (yInferiore < dimensioneFinestra.y) {
+        sf::RectangleShape muroSinistroInferiore(sf::Vector2f(spessoreMuro, dimensioneFinestra.y - yInferiore));
+        muroSinistroInferiore.setPosition(0, yInferiore);
+        muroSinistroInferiore.setFillColor(sf::Color::White);
+        muri.push_back(muroSinistroInferiore);
+    }
+
+    // Muro destro - BIANCO
+    sf::RectangleShape muroDestro(sf::Vector2f(spessoreMuro, dimensioneFinestra.y));
+    muroDestro.setPosition(dimensioneFinestra.x - spessoreMuro, 0);
+    muroDestro.setFillColor(sf::Color::White);
+    muri.push_back(muroDestro);
+
+    // Muri interni - BIANCO
+    sf::RectangleShape muroInterno1(sf::Vector2f(300.f, spessoreMuro));
+    muroInterno1.setPosition(200.f, 200.f);
+    muroInterno1.setFillColor(sf::Color::White);
+    muri.push_back(muroInterno1);
+
+    sf::RectangleShape muroInterno2(sf::Vector2f(spessoreMuro, 250.f));
+    muroInterno2.setPosition(500.f, 400.f);
+    muroInterno2.setFillColor(sf::Color::White);
+    muri.push_back(muroInterno2);
+
+    // Applica texture ai muri se caricata
+    if (textureMuriCaricata) {
+        for (auto& muro : muri) {
+            muro.setTexture(&textureMuri);
+        }
+    }
+}
+
+void Mappa::creaOstacoli() {
     ostacoli.clear();
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    // Ostacoli vari
+    std::vector<sf::Vector2f> posizioniOstacoli = {
+        sf::Vector2f(300.f, 500.f), sf::Vector2f(700.f, 300.f),
+        sf::Vector2f(900.f, 600.f), sf::Vector2f(400.f, 700.f),
+        sf::Vector2f(1100.f, 200.f), sf::Vector2f(600.f, 100.f)
+    };
 
-    std::uniform_real_distribution<float> dimDist(30.f, 100.f);
+    for (const auto& pos : posizioniOstacoli) {
+        sf::RectangleShape ostacolo(sf::Vector2f(60.f, 60.f));
+        ostacolo.setPosition(pos);
+        ostacolo.setFillColor(sf::Color::Red);
+        ostacoli.push_back(ostacolo);
+    }
 
-    float margine = 50.f;
-    std::uniform_real_distribution<float> xDist(margine, dimensioni.x - margine);
-    std::uniform_real_distribution<float> yDist(margine, dimensioni.y - margine);
+    // Applica texture agli ostacoli se caricata
+    if (textureOstacoliCaricata) {
+        for (auto& ostacolo : ostacoli) {
+            ostacolo.setTexture(&textureOstacoli);
+        }
+    }
+}
 
-    int tentativiMax = 1000;
-    int ostacoliCreati = 0;
+bool Mappa::caricaTextureSfondo(const std::string& percorsoFile) {
+    if (textureSfondo.loadFromFile(percorsoFile)) {
+        sfondo.setTexture(&textureSfondo);
+        textureSfondoCaricata = true;
 
-    while (ostacoliCreati < numeroOstacoli && tentativiMax > 0) {
-        float larghezza = dimDist(gen);
-        float altezza = dimDist(gen);
-        float x = xDist(gen);
-        float y = yDist(gen);
+        // Rimuovi il colore di fallback
+        sfondo.setFillColor(sf::Color::White);
 
-        sf::FloatRect nuovoOstacolo(x, y, larghezza, altezza);
+        std::cout << "Texture sfondo caricata con successo: " << percorsoFile << std::endl;
+        return true;
+    } else {
+        std::cout << "Errore nel caricamento texture sfondo: " << percorsoFile << std::endl;
+        textureSfondoCaricata = false;
+        return false;
+    }
+}
 
-        bool collisione = false;
+bool Mappa::caricaTextureMuri(const std::string& percorsoFile) {
+    if (textureMuri.loadFromFile(percorsoFile)) {
+        textureMuriCaricata = true;
 
-        for (const auto& ostacoloEsistente : ostacoli) {
-            sf::FloatRect boundsEsistente = ostacoloEsistente.getGlobalBounds();
-
-            if (boundsEsistente.intersects(nuovoOstacolo)) {
-                collisione = true;
-                break;
-            }
+        // Applica texture a tutti i muri
+        for (auto& muro : muri) {
+            muro.setTexture(&textureMuri);
+            muro.setFillColor(sf::Color::White); // Rimuovi colore solido
         }
 
-        if (!collisione) {
-            sf::RectangleShape ostacolo({larghezza, altezza});
-            ostacolo.setPosition(x, y);
-            ostacolo.setFillColor(coloreOstacolo);
-            ostacolo.setOutlineThickness(2.f);
-            ostacolo.setOutlineColor(sf::Color(100, 50, 0));
+        std::cout << "Texture muri caricata con successo: " << percorsoFile << std::endl;
+        return true;
+    } else {
+        std::cout << "Errore nel caricamento texture muri: " << percorsoFile << std::endl;
+        textureMuriCaricata = false;
+        return false;
+    }
+}
 
-            ostacoli.push_back(ostacolo);
-            ostacoliCreati++;
+bool Mappa::caricaTextureOstacoli(const std::string& percorsoFile) {
+    if (textureOstacoli.loadFromFile(percorsoFile)) {
+        textureOstacoliCaricata = true;
+
+        // Applica texture a tutti gli ostacoli
+        for (auto& ostacolo : ostacoli) {
+            ostacolo.setTexture(&textureOstacoli);
+            ostacolo.setFillColor(sf::Color::White); // Rimuovi colore solido
         }
 
-        tentativiMax--;
+        std::cout << "Texture ostacoli caricata con successo: " << percorsoFile << std::endl;
+        return true;
+    } else {
+        std::cout << "Errore nel caricamento texture ostacoli: " << percorsoFile << std::endl;
+        textureOstacoliCaricata = false;
+        return false;
     }
 }
 
 void Mappa::disegna(sf::RenderWindow& window) const {
-    sf::RectangleShape sfondo(dimensioni);
-    sfondo.setFillColor(sf::Color(100, 150, 255));
+    // Disegna prima lo sfondo
     window.draw(sfondo);
 
-    for (const auto& ostacolo : ostacoli)
-        window.draw(ostacolo);
-
-    for (const auto& muro : muri)
+    // Poi i muri
+    for (const auto& muro : muri) {
         window.draw(muro);
+    }
+
+    // Infine gli ostacoli
+    for (const auto& ostacolo : ostacoli) {
+        window.draw(ostacolo);
+    }
 }
 
 const std::vector<sf::RectangleShape>& Mappa::getMuri() const {
@@ -106,8 +179,4 @@ const std::vector<sf::RectangleShape>& Mappa::getMuri() const {
 
 const std::vector<sf::RectangleShape>& Mappa::getOstacoli() const {
     return ostacoli;
-}
-
-sf::FloatRect Mappa::getBounds() const {
-    return sf::FloatRect(0.f, 0.f, dimensioni.x, dimensioni.y);
 }
